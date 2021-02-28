@@ -1,0 +1,137 @@
+---
+title: "Statistical inference with the GSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `gss`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("gss.Rdata")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+The observations were made using a multi-stage sampling. They prevented the use of quotas based on sex, age and employment status. The study tried to reduce the unresponsiveness by conducting interviews after 3PM on weekdays or on weekends / holidays. Since the results are an observational study using a random sample, they can be generalized to the US population over 18 years old. However, since this is an observational study and there is no random distribution, we cannot draw causal conclusions.The sample errors can be small compared to the precision of the measuring tool and decisions made.
+
+* * *
+
+## Part 2: Research question
+
+Our world is constantly changing. We can number different things that we have and our ancestors did not. However, the level of inequality between two groups of population: rich and poor is widened a lot if it compared to 20th century levels.
+Furthermore, it is interesting, how financial conditions impact on our most important need - medicine. 
+In other words, does confidence in Medicine varies by satisfaction with financial situation?
+
+* * *
+
+## Part 3: Exploratory data analysis
+The variables analyzed in this study are:
+
+1.satfin: A categorical variable indicating how well the respondent feels about his or her financial condition
+
+2.conmedic: A categorical variable indicating whether respondent has confidence in medicine.
+
+To display the recent trends in connection between financial satisfaction and confidence in medicine, it would be better to focus on records in and after the year 2008. Let's store only the above two variables in or after 2008. Likiwise, let's remove the records with missing values in each of the variables.
+
+```{r}
+gss %>%
+  filter(year >= 2008 &
+           !is.na(satfin) &
+           !is.na(conmedic)) %>%
+  select(satfin,conmedic)  -> gss_med
+
+dim(gss_med)
+```
+The data was reduced to 4042 records from the total 57061 records.
+
+```{r}
+
+table(gss_med$satfin, useNA = "ifany")
+
+```
+Most of the respondents in our focused subset are more or less satisfied.
+```{r}
+table(gss_med$conmedic, useNA = "ifany")
+
+```
+As we can see, respondents with a hardly any confidence are in minority. Only some are in majority and a great deal in between.
+
+```{r}
+table(gss_med$satfin, gss_med$conmedic)
+
+```
+
+```{r}
+g <- ggplot(data = gss_med, aes(x = satfin))
+g <- g + geom_bar(aes(fill=conmedic), position = "dodge")
+g + theme(axis.text.x = element_text(angle = 0, hjust = 1))
+
+```
+
+Observations:
+
+  1. Respondents with hardly any confidence are consistently lowest across all    groups of financial sastisfaction
+  
+  2. Respondent with only some confidence are the vast majority across all groups, although within satisfied group a great deal ones prevail.
+  
+  Mosaic plots, a multivariate continuation of spine plots, provide a good example of the relationship between two categorical variables. The area of the tiles is proportional to the number of values in the group. If the tiles in the groups have the same area, it indicates the independence between variables. Let's draw our variables!
+  
+```{r}
+plot(table(gss_med$satfin, gss_med$conmedic))
+
+```
+    
+    
+In the above mosaic plot, the area for the group A Great Deal gradually decreases as the level of satisfaction changes to less pleased.
+  
+* * *
+## Part 4: Inference
+
+Null hypothesis: The level of financial satisfaction and the confidence in the medicine are independent.
+
+Alternative hypythesis: The level of financial satisfaction and the confidence in the medicine are dependent.
+
+Check Conditions
+
+1. Independence: GSS dataset is generated from a random sample survey. We are fine in assuming that the records are independent.
+
+2. Sample Size: As the samples are obtained without replacement, we must ensure they represent less than 10% of the population. The 4042 records we use for this analysis is indeed less than 10% of the total US population.
+
+3. Degrees of Freedom: We have 3 confidence levels and 3 satisfaction levels. As we have two categorical variables each with over 2 levels, we utilize the chi-squared test of independence to test the hypothesis.
+
+4. Expected Counts: To perform a chi-square test, the expected counts for each cell should be at least 5.
+
+```{r}
+chisq.test(gss_med$satfin, gss_med$conmedic)$expected
+
+```
+From the above table, it is clear that cell has an expected count more than 5 (which is condition for using it). We are now able to use chi-squared test of independence.
+
+```{r}
+chisq.test(gss_med$satfin, gss_med$conmedic)
+
+```
+The chi-squared statistic is 94.734 and the corresponding p-value for 4 degrees of freedom is much lower than the signcanificance level of 0.05.
+
+We have convincing evidence to reject the null hypothesis in favor of the alternative hypothesis regarding the dependence of financial satisfaction level and confidence in the medicine. The study is observational in nature, so we can only establish a relationship, but not a causal relationship between these two variables.
