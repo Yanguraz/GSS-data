@@ -3,4 +3,4 @@ Since 1972, the General Social Survey (GSS) has been monitoring societal change 
 
 GSS questions cover a diverse range of issues including national spending priorities, marijuana use, crime and punishment, race relations, quality of life, confidence in institutions, and sexual behavior.
 
-The puprose of the analysis to make a statistical inference with the GSS data.
+The puprose of the analysis is to make a statistical inference with the GSS data.
